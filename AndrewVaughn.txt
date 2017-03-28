@@ -1,0 +1,846 @@
+Andrew Vaughn
+CSCI 4850
+DBMS Project Phase 2
+
+
+Queries
+
+Shows the most expensive transaction from each company
+
+SELECT contractor.company_name, MAX(contract_invoice.amount)
+FROM contract_invoice JOIN contractor
+ON contract_invoice.contract_ID = contractor.contract_ID
+GROUP BY contractor.company_name
+
+RESULTS:
+ 
+
+The following is a basic query that shows how much has gone to each contractor so far.
+
+SELECT contract_invoice.contract_ID,
+SUM(contract_invoice.amount) AS Total_Cost 
+FROM contract_invoice 
+GROUP BY contract_invoice.contract_ID 
+
+RESULTS:
+ 
+
+The following query finds all the rooms with balconies and sorts them by their costs.
+
+SELECT room_code, room.SIZE, room.VARIATION, COST 
+FROM room 
+WHERE variation like '%Balcony' 
+ORDER BY room.COST ASC 
+
+RESULTS:
+ 
+
+The following query displays the number of different employees.
+
+SELECT man_emp.Num_Managers, sec_emp.Num_Secretaries, ground_emp.Num_Grounds_Keeper
+FROM 
+(SELECT COUNT(manager.ID) AS Num_Managers FROM manager) man_emp 
+JOIN 
+(SELECT COUNT(secretary.ID) AS Num_Secretaries FROM secretary) sec_emp 
+JOIN
+(SELECT COUNT(grounds_keeper.ID) AS Num_Grounds_Keeper FROM grounds_keeper) ground_emp
+
+RESULTS:
+ 
+
+The following query displays the rooms and number of problems associated with it.  It renames the count it performs to num_problems
+
+SELECT work_ticket.room_code, count(room_code) as num_problems 
+FROM work_ticket 
+GROUP BY room_code 
+ORDER BY work_ticket.room_code ASC 
+
+RESULTS:
+ 
+
+The following is a more detailed display of how much money has been recieved from each room so far.
+
+SELECT rent.room_code, SUM(rent.amount) AS Total_Amount 
+FROM rent 
+GROUP BY rent.room_code 
+ORDER BY rent.room_code ASC 
+
+RESULTS:
+ 
+
+The following query shows the monthly expense of paying the aparments employees.  The grounds keepers wages are calculated to be a weekly expense and then multiplied by 4 to create the monthly expense, and the managers and secretaries salaries are both divided by 12 because they are stored as a yearly salary.
+
+SELECT grounds_pay_2.Total_Grounds_Pay, manager_pay.Total_Manager_Pay, sec_pay.Total_Sec_Pay
+FROM
+(SELECT (SUM(weekly_pay)*4) AS Total_Grounds_Pay 
+FROM
+(SELECT grounds_keeper.ID, grounds_keeper.hours_worked, employee.emp_name, employee.pay, grounds_keeper.hours_worked * employee.pay AS weekly_pay 
+FROM grounds_keeper JOIN employee 
+ON grounds_keeper.ID = employee.ID) grounds_pay) grounds_pay_2
+JOIN
+(SELECT (SUM(manager.salary)/12) AS Total_Manager_Pay 
+FROM manager) manager_pay
+JOIN
+(SELECT (SUM(secretary.salary)/12) AS Total_Sec_Pay
+ FROM secretary) sec_pay
+
+RESULTS:
+ 
+
+Trivial query that shows the most expensive room.
+
+SELECT MAX(room.COST)
+FROM room
+
+RESULTS:
+ 
+
+The following displays rooms not occupied using subtraction.
+
+SELECT * 
+FROM room 
+WHERE room.ROOM_CODE Not In ( 
+	SELECT renter.room_code 
+	FROM renter JOIN room ) 
+
+ORDER BY room.ROOM_CODE ASC 
+
+RESULTS:
+
+ 
+
+To display renters and their rooms who have not paid their rent in full for the month a new table must be created.  This is because renters are identified by their SSN and rooms are identified by their room code, and 1 SSN/room_code may point to two different amounts.  Therefore a new table must be created with the primary key being receipt number. 
+
+SELECT room.ROOM_CODE, Payment.First_last_name, Payment.amount, room.COST 
+FROM room JOIN 
+( SELECT renter.FIRST_LAST_NAME, rent.room_code, rent.amount FROM renter JOIN rent ON renter.SSN = rent.SSN) Payment 
+WHERE room.ROOM_CODE = Payment.room_code 
+AND 
+room.COST != Payment.amount  
+
+RESULTS:
+ 
+
+The following is a basic query that displays the number of employees.
+
+SELECT COUNT(employee.ID) AS Num_Employees 
+FROM employee 
+
+RESULTS:
+ 
+
+The following query shows number of people that occupy each room.
+
+SELECT renter.room_code, count(renter.room_code) AS Num_Occupants 
+FROM renter natural LEFT outer JOIN room
+GROUP BY renter.room_code 
+ORDER BY Num_Occupants DESC
+
+RESULTS:
+ 
+
+The following is a more basic query that uses the left outer join to show which rooms are occupied, and by who.
+
+SELECT renter.room_code, renter.FIRST_LAST_NAME, room.VARIATION, room.SIZE 
+FROM renter natural LEFT outer JOIN room 
+ORDER BY renter.room_code ASC
+
+RESULTS:
+ 
+
+To create a table that shows who loves together renter is joined with itself.  To do this rename one of the renter tables to Lives and join then where their names are not equal but their room codes are.  In the select statement it is necessary to specify only the renter name and room code is wanted.  Otherwise the resulting table would contain columns that are redundant.  To better illustrate this change the first line to SELECT *
+
+SELECT renter.FIRST_LAST_NAME, renter.room_code 
+FROM renter JOIN 
+(SELECT * FROM renter ) Lives 
+WHERE renter.FIRST_LAST_NAME <> Lives.First_Last_name 
+AND renter.room_code = Lives.room_code 
+ORDER BY room_code ASC 
+
+ 
+
+To display all rooms with their potential occupants a right outer join is used.  Rooms with no renters have null under the FIRST_LAST_NAME column.  The important difference between this query and the left outer query that shows all occupied rooms is that you must specify room.room_code in the select statement otherwise the room_code would be null where the name is null.
+
+SELECT room.room_code, renter.FIRST_LAST_NAME, room.VARIATION, room.SIZE 
+FROM renter natural RIGHT outer JOIN room 
+ORDER BY room_code ASC
+
+RESULTS:
+ 
+ 
+
+The following query displays the total pay of the grounds keeper.  Since they are paid by the week a new derived column called weekly_pay was created, and displays the hours worked * hourly wages.
+
+SELECT SUM(weekly_pay) AS Total_Grounds_Pay 
+FROM
+(SELECT grounds_keeper.ID, grounds_keeper.hours_worked, employee.emp_name, employee.pay, grounds_keeper.hours_worked * employee.pay AS weekly_pay 
+FROM grounds_keeper JOIN employee 
+ON grounds_keeper.ID = employee.ID) grounds_pay
+
+RESULTS:
+ 
+
+The following is a display of the total income from rent so far.
+
+SELECT SUM(rent.amount) AS Total_Income
+FROM rent
+
+RESULTS:
+ 
+
+The following query shows the monthly cost of everything grouped together.  This is done to give an accurate portrayal of where the expenses are going.  It includes pay to contractors and the expenses of the apartments employees.  The contract expense is derived from adding the total expense incurred and dividing by the number of invoices sent to them.  This is not an exact portrayal of that months expense, but it is used to give an idea of what to expect on average each month.
+
+SELECT grounds_pay_2.Total_Grounds_Pay, manager_pay.Total_Manager_Pay, sec_pay.Total_Sec_Pay, contract_cost_3.Monthly_Contract_Cost
+FROM
+(SELECT (SUM(weekly_pay)*4) AS Total_Grounds_Pay 
+FROM
+(SELECT grounds_keeper.ID, grounds_keeper.hours_worked, employee.emp_name, 
+
+employee.pay, grounds_keeper.hours_worked * employee.pay AS weekly_pay 
+FROM grounds_keeper JOIN employee 
+ON grounds_keeper.ID = employee.ID) grounds_pay) grounds_pay_2
+JOIN
+(SELECT (SUM(manager.salary)/12) AS Total_Manager_Pay 
+FROM manager) manager_pay
+JOIN
+(SELECT (SUM(secretary.salary)/12) AS Total_Sec_Pay
+ FROM secretary) sec_pay
+JOIN
+(SELECT contract_cost_2.Contract_Cost_1/contract_cost_2.Total_Trans AS Monthly_Contract_Cost
+FROM
+(SELECT SUM(contract_cost.Total_Cost) AS Contract_Cost_1, SUM(contract_cost.Num_Trans) AS Total_Trans
+FROM
+(SELECT contract_invoice.contract_ID, SUM(contract_invoice.amount) AS Total_Cost, COUNT(contract_invoice.invoice_number) AS Num_Trans
+FROM contract_invoice
+GROUP BY contract_invoice.contract_ID) contract_cost) contract_cost_2) contract_cost_3
+
+ 
+
+The following query first finds the yearly maintenance that is performed and then sums it up to display the total cost of maintenance every year.
+
+SELECT Yearly_Work.description, SUM(contract_invoice.amount)
+FROM contract_invoice JOIN 
+(SELECT date_upkeep_performed.ref_number, Work_Done.description, Work_Done.upkeep_type, date_upkeep_performed.date_performed
+FROM date_upkeep_performed JOIN 
+(SELECT * 
+FROM general_upkeep 
+WHERE upkeep_type = 'Yearly') Work_Done 
+ON date_upkeep_performed.ref_number = Work_Done.ref_number ) Yearly_Work
+ON contract_invoice.invoice_number = Yearly_Work.ref_number
+GROUP BY Yearly_Work.description
+
+RESULTS:
+ 
+
+Displays the average room next to the smallest and cheapest room.
+
+SELECT AVG(room.COST), AVG(room.SIZE), AVG(room.COST_SQ_FT)
+FROM room
+UNION
+SELECT MIN(room.COST), MIN(room.SIZE), MIN(room.COST_SQ_FT)
+FROM room
+
+RESULTS:
+ 
+
+The following query displays when the yearly maintenance was done along with reference numbers.  This is used to ensure the yearly maintenance is done on time.
+
+SELECT date_upkeep_performed.ref_number, Work_Done.description, Work_Done.upkeep_type, date_upkeep_performed.date_performed
+FROM date_upkeep_performed JOIN 
+(SELECT * 
+FROM general_upkeep 
+WHERE upkeep_type = 'Yearly') Work_Done 
+ON date_upkeep_performed.ref_number = Work_Done.ref_number
+ORDER BY date_upkeep_performed.date_performed ASC
+
+RESULTS:
+ 
+
+
+
+Creating/Populating Tables
+
+--
+-- Database: `myproject`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contractor`
+--
+
+CREATE TABLE `contractor` (
+  `contract_ID` int(11) NOT NULL,
+  `company_name` varchar(50) DEFAULT NULL,
+  `address` varchar(35) DEFAULT NULL,
+  `phone` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contractor`
+--
+
+INSERT INTO `contractor` (`contract_ID`, `company_name`, `address`, `phone`) VALUES
+(1, 'Heat & AC 1', '321 Street Alpha', 502555),
+(2, 'Parking Maintenance 1', '321 Street Bravo', 502556);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contract_invoice`
+--
+
+CREATE TABLE `contract_invoice` (
+  `invoice_number` int(11) NOT NULL,
+  `amount` double(16,2) DEFAULT NULL,
+  `payment_date` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contract_invoice`
+--
+
+INSERT INTO `contract_invoice` (`invoice_number`, `amount`, `payment_date`, `contract_ID`) VALUES
+(1, 75000.00, 211980, 2),
+(2, 125000.00, 211980, 2),
+(3, 75000.00, 811980, 2),
+(4, 6000.00, 911980, 2),
+(5, 100000.00, 211981, 2),
+(500, 600.00, 211980, 1),
+(501, 1200.00, 311980, 1),
+(502, 3000.00, 411980, 1),
+(503, 1800.00, 511980, 1),
+(504, 2250.00, 611980, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `date_upkeep_performed`
+--
+
+CREATE TABLE `date_upkeep_performed` (
+  `ref_number` int(11) NOT NULL,
+  `date_performed` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `date_upkeep_performed`
+--
+
+INSERT INTO `date_upkeep_performed` (`ref_number`, `date_performed`) VALUES
+(1, 111980),
+(2, 111980),
+(3, 711981),
+(4, 811981),
+(5, 111981);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `employee`
+--
+
+CREATE TABLE `employee` (
+  `ID` int(11) NOT NULL,
+  `emp_name` varchar(30) DEFAULT NULL,
+  `pay` decimal(15,2) DEFAULT NULL,
+  `start_date` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `employee`
+--
+
+INSERT INTO `employee` (`ID`, `emp_name`, `pay`, `start_date`) VALUES
+(990, 'Jackson Handy-Man', '16.50', 111975),
+(980, 'Betty Holberton', '90000.00', 111975),
+(970, 'Peter Trefonas', '45000.00', 111975),
+(991, 'Andrew Jackson', '16.00', 211975),
+(992, 'Kieth Stewart', '16.25', 311975),
+(971, 'Allen Trust', '40000.00', 211975),
+(993, 'Mathew Hendricks', '16.00', 411975);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `general_upkeep`
+--
+
+CREATE TABLE `general_upkeep` (
+  `ref_number` int(11) NOT NULL,
+  `description` varchar(100) DEFAULT NULL,
+  `upkeep_type` varchar(50) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `general_upkeep`
+--
+
+INSERT INTO `general_upkeep` (`ref_number`, `description`, `upkeep_type`) VALUES
+(1, 'Re-Paint', '6 month'),
+(2, 'Maintenance', 'Yearly'),
+(3, 'Re-Paint', '6 Month'),
+(4, 'Pot-Hole fix', 'Emergency'),
+(5, 'Maintenance', 'Yearly');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grounds_keeper`
+--
+
+CREATE TABLE `grounds_keeper` (
+  `ID` int(11) NOT NULL,
+  `hours_worked` decimal(10,2) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `grounds_keeper`
+--
+
+INSERT INTO `grounds_keeper` (`ID`, `hours_worked`) VALUES
+(990, '40.00'),
+(991, '40.00'),
+(992, '36.00'),
+(993, '25.00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maint_heat_ac`
+--
+
+CREATE TABLE `maint_heat_ac` (
+  `company_ID` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL,
+  `heat_name` varchar(30) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `maint_heat_ac`
+--
+
+INSERT INTO `maint_heat_ac` (`company_ID`, `contract_ID`, `heat_name`) VALUES
+(123, 1, 'Brian Griffin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maint_parking`
+--
+
+CREATE TABLE `maint_parking` (
+  `company_ID` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL,
+  `park_name` varchar(30) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `maint_parking`
+--
+
+INSERT INTO `maint_parking` (`company_ID`, `contract_ID`, `park_name`) VALUES
+(124, 2, 'Lois Griffin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `manager`
+--
+
+CREATE TABLE `manager` (
+  `ID` int(11) NOT NULL,
+  `salary` decimal(10,2) DEFAULT NULL,
+  `office` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `manager`
+--
+
+INSERT INTO `manager` (`ID`, `salary`, `office`) VALUES
+(980, '90000.00', 'G6');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `monthly_pay`
+-- (See below for the actual view)
+--
+CREATE TABLE `monthly_pay` (
+`Total_Grounds_Pay` decimal(48,4)
+,`Total_Manager_Pay` decimal(36,6)
+,`Total_Sec_Pay` decimal(36,6)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rent`
+--
+
+CREATE TABLE `rent` (
+  `SSN` int(11) NOT NULL,
+  `receipt` int(11) NOT NULL,
+  `room_code` varchar(5) NOT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `rec_date` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `rent`
+--
+
+INSERT INTO `rent` (`SSN`, `receipt`, `room_code`, `amount`, `rec_date`) VALUES
+(11111111, 1, 'A1', '500.00', 112000),
+(11111113, 2, 'A2', '550.00', 112000),
+(11111114, 3, 'B1', '650.00', 112000),
+(11111115, 4, 'B2', '550.00', 112000),
+(11111116, 5, 'B3', '750.00', 112000),
+(11111117, 6, 'A4', '700.00', 112000),
+(11111118, 7, 'C1', '750.00', 112000),
+(11111120, 8, 'C3', '900.00', 112000),
+(11111121, 9, 'D1', '550.00', 112000),
+(11111122, 10, 'D2', '800.00', 112000),
+(11111124, 11, 'D4', '400.00', 112000),
+(11111111, 12, 'A1', '500.00', 212000),
+(11111113, 13, 'A2', '550.00', 212000),
+(11111114, 14, 'B1', '600.00', 212000),
+(11111115, 15, 'B2', '550.00', 212000),
+(11111116, 16, 'B3', '900.00', 212000),
+(11111117, 17, 'A4', '700.00', 212000),
+(11111118, 18, 'C1', '750.00', 212000),
+(11111120, 19, 'C3', '900.00', 212000),
+(11111121, 20, 'D1', '550.00', 212000),
+(11111123, 21, 'D2', '810.00', 212000),
+(11111124, 22, 'D4', '400.00', 212000),
+(11111125, 23, 'E4', '1200.00', 112000),
+(11111127, 24, 'E2', '600.00', 112000),
+(11111128, 25, 'E3', '800.00', 112000),
+(11111130, 26, 'E1', '400.00', 112000),
+(11111125, 27, 'E4', '1200.00', 212000),
+(11111127, 28, 'E2', '600.00', 212000),
+(11111128, 29, 'E3', '800.00', 212000),
+(11111130, 30, 'E1', '400.00', 212000);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `renter`
+--
+
+CREATE TABLE `renter` (
+  `SSN` int(11) NOT NULL,
+  `FIRST_LAST_NAME` varchar(20) NOT NULL,
+  `DOB` int(11) NOT NULL,
+  `PHONE` int(11) NOT NULL,
+  `ADDRESS` char(30) DEFAULT NULL,
+  `room_code` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `renter`
+--
+
+INSERT INTO `renter` (`SSN`, `FIRST_LAST_NAME`, `DOB`, `PHONE`, `ADDRESS`, `room_code`) VALUES
+(11111111, 'John Smith', 111980, 402555, '123 Street A #1', 'A1'),
+(11111112, 'Jane Smith', 211980, 402556, '123 Street A #1', 'A1'),
+(11111113, 'Jake Honda', 311980, 402557, '123 Street A #2', 'A2'),
+(11111114, 'Bryan Mouse', 411980, 402558, '123 Street B #1', 'B1'),
+(11111115, 'Mike Carrie', 511980, 402559, '123 Street B #2', 'B2'),
+(11111116, 'Josh Shirley', 611980, 402560, '123 Street B #3', 'B3'),
+(11111117, 'Adam Hopple', 711980, 402561, '123 Street A #4', 'A4'),
+(11111118, 'Harrison Fisher', 811980, 402562, '123 Street C #1', 'C1'),
+(11111119, 'Jennifer Fisher', 911980, 402563, '123 Street C #1', 'C1'),
+(11111120, 'Jack Hamme', 1011980, 402564, '123 Street C #3', 'C3'),
+(11111121, 'Jeffery Ines', 1111980, 402565, '123 Street D #1', 'D1'),
+(11111122, 'Ashley Maves', 1211980, 402566, '123 Street D #2', 'D2'),
+(11111123, 'Frank Myes', 111981, 402567, '123 Street D #2', 'D2'),
+(11111124, 'Ivery Yannes', 211981, 402568, '123 Street D #4', 'D4'),
+(11111125, 'John T.', 311981, 402569, '123 Street E #4', 'E4'),
+(11111126, 'Jane T.', 311981, 402570, '123 Street E #4', 'E4'),
+(11111127, 'Gregory Kennedy', 411981, 402571, '123 Street E #2', 'E2'),
+(11111128, 'Marci Yates', 511981, 402572, '123 Street E #3', 'E3'),
+(11111129, 'Kyle Yates', 611981, 402573, '123 Street E #3', 'E3'),
+(11111130, 'Laury Mathers', 711981, 402574, '123 Street E #1', 'E1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `room`
+--
+
+CREATE TABLE `room` (
+  `ROOM_CODE` varchar(5) NOT NULL,
+  `SIZE` int(11) NOT NULL,
+  `VARIATION` varchar(20) DEFAULT NULL,
+  `COST` decimal(10,2) DEFAULT NULL,
+  `COST_SQ_FT` decimal(10,2) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `room`
+--
+
+INSERT INTO `room` (`ROOM_CODE`, `SIZE`, `VARIATION`, `COST`, `COST_SQ_FT`) VALUES
+('A1', 500, 'One Bedroom', '500.00', '1.00'),
+('A2', 550, 'One Bedroom', '550.00', '1.00'),
+('B1', 600, 'Two Bedroom', '650.00', '1.08'),
+('B2', 550, 'One Bedroom', '550.00', '1.00'),
+('C1', 650, 'Two Bed w/ Balcony', '750.00', '1.15'),
+('C2', 400, 'Studio', '400.00', '1.00'),
+('A3', 650, 'Two Bedroom', '650.00', '1.00'),
+('B3', 750, 'Two Bed w/ Balcony', '900.00', '1.20'),
+('C3', 750, 'Two Bed w/ Balcony', '900.00', '1.20'),
+('A4', 650, 'Two Bed w/ Balcony', '700.00', '1.07'),
+('B4', 550, 'One Bedroom', '550.00', '1.00'),
+('C4', 600, 'One Bedroom', '600.00', '1.00'),
+('D1', 550, 'One Bedroom', '550.00', '1.00'),
+('D2', 700, 'Two Bedroom', '825.00', '1.18'),
+('D3', 800, 'Two Bed w/ Balcony', '1000.00', '1.25'),
+('D4', 400, 'Studio', '400.00', '1.00'),
+('A5', 400, 'Studio', '400.00', '1.00'),
+('E1', 400, 'Studio', '400.00', '1.00'),
+('E2', 550, 'One Bedroom', '600.00', '1.09'),
+('E3', 700, 'Two Bedroom', '800.00', '1.14'),
+('E4', 1000, 'Two Bed w/ Balcony', '1200.00', '1.20');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `secretary`
+--
+
+CREATE TABLE `secretary` (
+  `ID` int(11) NOT NULL,
+  `salary` decimal(10,2) DEFAULT NULL,
+  `office` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `secretary`
+--
+
+INSERT INTO `secretary` (`ID`, `salary`, `office`) VALUES
+(970, '45000.00', 'G1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `work_ticket`
+--
+
+CREATE TABLE `work_ticket` (
+  `ticket_number` int(11) NOT NULL,
+  `room_code` varchar(5) DEFAULT NULL,
+  `submit_date` int(11) DEFAULT NULL,
+  `description` varchar(100) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `work_ticket`
+--
+
+INSERT INTO `work_ticket` (`ticket_number`, `room_code`, `submit_date`, `description`) VALUES
+(50, 'A1', 112000, 'Food grinder broken'),
+(51, 'A1', 112000, 'Sink Leaks'),
+(52, 'A1', 112000, 'Dryer does not buzz'),
+(53, 'A1', 112000, 'Fridge does not shut'),
+(54, 'D4', 122000, 'Sagging Roof'),
+(55, 'A1', 122000, 'Bath tub does not drain'),
+(56, 'B3', 22002, 'Balcony about to collapse');
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `monthly_pay`
+--
+DROP TABLE IF EXISTS `monthly_pay`;
+-- in use(#1046 - No database selected)
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `contractor`
+--
+ALTER TABLE `contractor`
+  ADD PRIMARY KEY (`contract_ID`);
+
+--
+-- Indexes for table `contract_invoice`
+--
+ALTER TABLE `contract_invoice`
+  ADD PRIMARY KEY (`invoice_number`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `date_upkeep_performed`
+--
+ALTER TABLE `date_upkeep_performed`
+  ADD PRIMARY KEY (`ref_number`);
+
+--
+-- Indexes for table `employee`
+--
+ALTER TABLE `employee`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `general_upkeep`
+--
+ALTER TABLE `general_upkeep`
+  ADD PRIMARY KEY (`ref_number`);
+
+--
+-- Indexes for table `grounds_keeper`
+--
+ALTER TABLE `grounds_keeper`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `maint_heat_ac`
+--
+ALTER TABLE `maint_heat_ac`
+  ADD PRIMARY KEY (`company_ID`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `maint_parking`
+--
+ALTER TABLE `maint_parking`
+  ADD PRIMARY KEY (`company_ID`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `manager`
+--
+ALTER TABLE `manager`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `rent`
+--
+ALTER TABLE `rent`
+  ADD PRIMARY KEY (`receipt`,`room_code`),
+  ADD KEY `SSN` (`SSN`),
+  ADD KEY `room_code` (`room_code`);
+
+--
+-- Indexes for table `renter`
+--
+ALTER TABLE `renter`
+  ADD PRIMARY KEY (`SSN`),
+  ADD KEY `room_code` (`room_code`);
+
+--
+-- Indexes for table `room`
+--
+ALTER TABLE `room`
+  ADD PRIMARY KEY (`ROOM_CODE`);
+
+--
+-- Indexes for table `secretary`
+--
+ALTER TABLE `secretary`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `work_ticket`
+--
+ALTER TABLE `work_ticket`
+  ADD PRIMARY KEY (`ticket_number`),
+  ADD KEY `room_code` (`room_code`);
+
+
+Original Phase 1 Specification
+
+Contractor Table: 
+INSERT INTO `contractor` (`contract_ID`, `company_name`, `address`, `phone`) VALUES
+(1, 'Heat & AC 1', '321 Street Alpha', 502555),
+(2, 'Parking Maintenance 1', '321 Street Bravo', 502556);
+
+Contract_Invoice Table: 
+INSERT INTO `contract_invoice` (`invoice_number`, `amount`, `payment_date`, `contract_ID`) VALUES
+(1, 75000.00, 211980, 2);
+
+Date_Upkeep_Performed Table: 
+INSERT INTO `date_upkeep_performed` (`ref_number`, `date_performed`) VALUES
+(50, 121980);
+
+Employee Table: 
+INSERT INTO `employee` (`ID`, `emp_name`, `pay`, `start_date`) VALUES
+(999, 'Jackson Handy-Man', '16.50', 111975),
+(998, 'Betty Holberton', '90000.00', 111975),
+(997, 'Peter Trefonas', '45000.00', 111975);
+
+General_Upkeep Table: 
+INSERT INTO `general_upkeep` (`ref_number`, `description`, `upkeep_type`) VALUES
+(1, 'Payment re-paint', '6 month');
+
+Grounds_Keeper Table:
+INSERT INTO `grounds_keeper` (`ID`, `hours_worked`) VALUES
+(999, '40.00');
+
+Maint_Heat_AC Table: 
+INSERT INTO `maint_heat_ac` (`company_ID`, `contract_ID`, `heat_name`) VALUES
+(123, 1, 'Brian Griffin');
+
+Maint_Parking Table: 
+INSERT INTO `maint_parking` (`company_ID`, `contract_ID`, `park_name`) VALUES
+(124, 2, 'Lois Griffin');
+
+Manager Table: 
+INSERT INTO `manager` (`ID`, `salary`, `office`) VALUES
+(998, '90000.00', 'G6');
+
+Rent Table: 
+INSERT INTO `rent` (`SSN`, `receipt`, `room_code`, `amount`, `rec_date`) VALUES
+(11111111, 1, 'A1', '500.00', 111980);
+
+Renter Table: 
+INSERT INTO `renter` (`SSN`, `FIRST_LAST_NAME`, `DOB`, `PHONE`, `ADDRESS`, `room_code`) VALUES
+(11111111, 'John Smith', 111980, 402555, '123 Street A', 'A1'),
+(11111112, 'Jane Smith', 211980, 402556, '123 Street A', 'A1'),
+(11111113, 'Jake Honda', 311980, 402557, '123 Street A', 'A2'),
+(11111114, 'Bryan Mouse', 411980, 402558, '123 Street B', 'B1');
+
+Room Table: 
+INSERT INTO `room` (`ROOM_CODE`, `SIZE`, `VARIATION`, `COST`, `COST_SQ_FT`) VALUES
+('A1', 500, 'Single Room', '500.00', '1.00'),
+('A2', 550, 'Single Room', '550.00', '1.00'),
+('B1', 600, 'Two Bedroom', '650.00', '1.08');
+
+Secretary Table: 
+INSERT INTO `secretary` (`ID`, `salary`, `office`) VALUES
+(997, '45000.00', 'G1');
+
+Work_Ticket Table: 
+INSERT INTO `work_ticket` (`ticket_number`, `room_code`, `submit_date`, `description`) VALUES
+(50, 'A1', 112000, 'Food grinder broken');
+
+
+Changes Made
+
+The only changes made were formatting to the date, or changes to dates entered for continuity.  For example if an invoice for a parking lot job was created on Jan 1 2000, but the payment for the invoice was Feb 1 1980 that is not logically possible.  No other major changes were made.  However, I did run into some problems that were a result of a poorly designed database from phase 1.  For example tracking number of hours an employee works each week would require a creation of another entity in wamp.  Also because of my poor design for work_tickets (tickets renters generate to signify repairs need to be made on their room).  I have no decent way of tracking what work employees have done to the room, or how to signify whether the work has been completed or not.  This project has been a massive learning experience, and my initial plan was to make keep the database simple.  Throughout phase 2 I realised that the simple approach is not always the best approach when it comes to design as it has placed restraints on the relationships my database can create.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
