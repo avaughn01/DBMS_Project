@@ -1,0 +1,516 @@
+-- phpMyAdmin SQL Dump
+-- version 4.6.4
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Apr 13, 2017 at 08:49 PM
+-- Server version: 5.7.14
+-- PHP Version: 5.6.25
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `myproject`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contractor`
+--
+
+CREATE TABLE `contractor` (
+  `contract_ID` int(11) NOT NULL,
+  `company_name` varchar(50) DEFAULT NULL,
+  `address` varchar(35) DEFAULT NULL,
+  `phone` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contractor`
+--
+
+INSERT INTO `contractor` (`contract_ID`, `company_name`, `address`, `phone`) VALUES
+(1, 'Heat & AC 1', '321 Street Alpha', 502555),
+(2, 'Parking Maintenance 1', '321 Street Bravo', 502556);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contract_invoice`
+--
+
+CREATE TABLE `contract_invoice` (
+  `invoice_number` int(11) NOT NULL,
+  `amount` double(16,2) DEFAULT NULL,
+  `payment_date` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contract_invoice`
+--
+
+INSERT INTO `contract_invoice` (`invoice_number`, `amount`, `payment_date`, `contract_ID`) VALUES
+(1, 75000.00, 211980, 2),
+(2, 125000.00, 211980, 2),
+(3, 75000.00, 811980, 2),
+(4, 6000.00, 911980, 2),
+(5, 100000.00, 211981, 2),
+(500, 600.00, 211980, 1),
+(501, 1200.00, 311980, 1),
+(502, 3000.00, 411980, 1),
+(503, 1800.00, 511980, 1),
+(504, 2250.00, 611980, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `date_upkeep_performed`
+--
+
+CREATE TABLE `date_upkeep_performed` (
+  `ref_number` int(11) NOT NULL,
+  `date_performed` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `date_upkeep_performed`
+--
+
+INSERT INTO `date_upkeep_performed` (`ref_number`, `date_performed`) VALUES
+(1, 111980),
+(2, 111980),
+(3, 711981),
+(4, 811981),
+(5, 111981);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `employee`
+--
+
+CREATE TABLE `employee` (
+  `ID` int(11) NOT NULL,
+  `emp_name` varchar(30) DEFAULT NULL,
+  `pay` decimal(15,2) DEFAULT NULL,
+  `start_date` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `employee`
+--
+
+INSERT INTO `employee` (`ID`, `emp_name`, `pay`, `start_date`) VALUES
+(990, 'Jackson Handy-Man', '16.50', 111975),
+(980, 'Betty Holberton', '90000.00', 111975),
+(970, 'Peter Trefonas', '45000.00', 111975),
+(991, 'Andrew Jackson', '16.00', 211975),
+(992, 'Kieth Stewart', '16.25', 311975),
+(971, 'Allen Trust', '40000.00', 211975),
+(993, 'Mathew Hendricks', '16.00', 411975);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `general_upkeep`
+--
+
+CREATE TABLE `general_upkeep` (
+  `ref_number` int(11) NOT NULL,
+  `description` varchar(100) DEFAULT NULL,
+  `upkeep_type` varchar(50) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `general_upkeep`
+--
+
+INSERT INTO `general_upkeep` (`ref_number`, `description`, `upkeep_type`) VALUES
+(1, 'Re-Paint', '6 month'),
+(2, 'Maintenance', 'Yearly'),
+(3, 'Re-Paint', '6 Month'),
+(4, 'Pot-Hole fix', 'Emergency'),
+(5, 'Maintenance', 'Yearly');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grounds_keeper`
+--
+
+CREATE TABLE `grounds_keeper` (
+  `ID` int(11) NOT NULL,
+  `hours_worked` decimal(10,2) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `grounds_keeper`
+--
+
+INSERT INTO `grounds_keeper` (`ID`, `hours_worked`) VALUES
+(990, '40.00'),
+(991, '40.00'),
+(992, '36.00'),
+(993, '25.00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maint_heat_ac`
+--
+
+CREATE TABLE `maint_heat_ac` (
+  `company_ID` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL,
+  `heat_name` varchar(30) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `maint_heat_ac`
+--
+
+INSERT INTO `maint_heat_ac` (`company_ID`, `contract_ID`, `heat_name`) VALUES
+(123, 1, 'Brian Griffin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maint_parking`
+--
+
+CREATE TABLE `maint_parking` (
+  `company_ID` int(11) NOT NULL,
+  `contract_ID` int(11) NOT NULL,
+  `park_name` varchar(30) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `maint_parking`
+--
+
+INSERT INTO `maint_parking` (`company_ID`, `contract_ID`, `park_name`) VALUES
+(124, 2, 'Lois Griffin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `manager`
+--
+
+CREATE TABLE `manager` (
+  `ID` int(11) NOT NULL,
+  `salary` decimal(10,2) DEFAULT NULL,
+  `office` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `manager`
+--
+
+INSERT INTO `manager` (`ID`, `salary`, `office`) VALUES
+(980, '90000.00', 'G6');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `monthly_pay`
+-- (See below for the actual view)
+--
+CREATE TABLE `monthly_pay` (
+`Total_Grounds_Pay` decimal(48,4)
+,`Total_Manager_Pay` decimal(36,6)
+,`Total_Sec_Pay` decimal(36,6)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rent`
+--
+
+CREATE TABLE `rent` (
+  `SSN` int(11) NOT NULL,
+  `receipt` int(11) NOT NULL,
+  `room_code` varchar(5) NOT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `rec_date` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `rent`
+--
+
+INSERT INTO `rent` (`SSN`, `receipt`, `room_code`, `amount`, `rec_date`) VALUES
+(11111111, 1, 'A1', '500.00', 112000),
+(11111113, 2, 'A2', '550.00', 112000),
+(11111114, 3, 'B1', '650.00', 112000),
+(11111115, 4, 'B2', '550.00', 112000),
+(11111116, 5, 'B3', '750.00', 112000),
+(11111117, 6, 'A4', '700.00', 112000),
+(11111118, 7, 'C1', '750.00', 112000),
+(11111120, 8, 'C3', '900.00', 112000),
+(11111121, 9, 'D1', '550.00', 112000),
+(11111122, 10, 'D2', '800.00', 112000),
+(11111124, 11, 'D4', '400.00', 112000),
+(11111111, 12, 'A1', '500.00', 212000),
+(11111113, 13, 'A2', '550.00', 212000),
+(11111114, 14, 'B1', '600.00', 212000),
+(11111115, 15, 'B2', '550.00', 212000),
+(11111116, 16, 'B3', '900.00', 212000),
+(11111117, 17, 'A4', '700.00', 212000),
+(11111118, 18, 'C1', '750.00', 212000),
+(11111120, 19, 'C3', '900.00', 212000),
+(11111121, 20, 'D1', '550.00', 212000),
+(11111123, 21, 'D2', '810.00', 212000),
+(11111124, 22, 'D4', '400.00', 212000),
+(11111125, 23, 'E4', '1200.00', 112000),
+(11111127, 24, 'E2', '600.00', 112000),
+(11111128, 25, 'E3', '800.00', 112000),
+(11111130, 26, 'E1', '400.00', 112000),
+(11111125, 27, 'E4', '1200.00', 212000),
+(11111127, 28, 'E2', '600.00', 212000),
+(11111128, 29, 'E3', '800.00', 212000),
+(11111130, 30, 'E1', '400.00', 212000);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `renter`
+--
+
+CREATE TABLE `renter` (
+  `SSN` int(11) NOT NULL,
+  `FIRST_LAST_NAME` varchar(20) NOT NULL,
+  `DOB` int(11) NOT NULL,
+  `PHONE` int(11) NOT NULL,
+  `ADDRESS` char(30) DEFAULT NULL,
+  `room_code` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `renter`
+--
+
+INSERT INTO `renter` (`SSN`, `FIRST_LAST_NAME`, `DOB`, `PHONE`, `ADDRESS`, `room_code`) VALUES
+(11111111, 'John Smith', 111980, 402555, '123 Street A #1', 'A1'),
+(11111112, 'Jane Smith', 211980, 402556, '123 Street A #1', 'A1'),
+(11111113, 'Jake Honda', 311980, 402557, '123 Street A #2', 'A2'),
+(11111114, 'Bryan Mouse', 411980, 402558, '123 Street B #1', 'B1'),
+(11111115, 'Mike Carrie', 511980, 402559, '123 Street B #2', 'B2'),
+(11111116, 'Josh Shirley', 611980, 402560, '123 Street B #3', 'B3'),
+(11111117, 'Adam Hopple', 711980, 402561, '123 Street A #4', 'A4'),
+(11111118, 'Harrison Fisher', 811980, 402562, '123 Street C #1', 'C1'),
+(11111119, 'Jennifer Fisher', 911980, 402563, '123 Street C #1', 'C1'),
+(11111120, 'Jack Hamme', 1011980, 402564, '123 Street C #3', 'C3'),
+(11111121, 'Jeffery Ines', 1111980, 402565, '123 Street D #1', 'D1'),
+(11111122, 'Ashley Maves', 1211980, 402566, '123 Street D #2', 'D2'),
+(11111123, 'Frank Myes', 111981, 402567, '123 Street D #2', 'D2'),
+(11111124, 'Ivery Yannes', 211981, 402568, '123 Street D #4', 'D4'),
+(11111125, 'John T.', 311981, 402569, '123 Street E #4', 'E4'),
+(11111126, 'Jane T.', 311981, 402570, '123 Street E #4', 'E4'),
+(11111127, 'Gregory Kennedy', 411981, 402571, '123 Street E #2', 'E2'),
+(11111128, 'Marci Yates', 511981, 402572, '123 Street E #3', 'E3'),
+(11111129, 'Kyle Yates', 611981, 402573, '123 Street E #3', 'E3'),
+(11111130, 'Laury Mathers', 711981, 402574, '123 Street E #1', 'E1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `room`
+--
+
+CREATE TABLE `room` (
+  `ROOM_CODE` varchar(5) NOT NULL,
+  `SIZE` int(11) NOT NULL,
+  `VARIATION` varchar(20) DEFAULT NULL,
+  `COST` decimal(10,2) DEFAULT NULL,
+  `COST_SQ_FT` decimal(10,2) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `room`
+--
+
+INSERT INTO `room` (`ROOM_CODE`, `SIZE`, `VARIATION`, `COST`, `COST_SQ_FT`) VALUES
+('A1', 500, 'One Bedroom', '500.00', '1.00'),
+('A2', 550, 'One Bedroom', '550.00', '1.00'),
+('B1', 600, 'Two Bedroom', '650.00', '1.08'),
+('B2', 550, 'One Bedroom', '550.00', '1.00'),
+('C1', 650, 'Two Bed w/ Balcony', '750.00', '1.15'),
+('C2', 400, 'Studio', '400.00', '1.00'),
+('A3', 650, 'Two Bedroom', '650.00', '1.00'),
+('B3', 750, 'Two Bed w/ Balcony', '900.00', '1.20'),
+('C3', 750, 'Two Bed w/ Balcony', '900.00', '1.20'),
+('A4', 650, 'Two Bed w/ Balcony', '700.00', '1.07'),
+('B4', 550, 'One Bedroom', '550.00', '1.00'),
+('C4', 600, 'One Bedroom', '600.00', '1.00'),
+('D1', 550, 'One Bedroom', '550.00', '1.00'),
+('D2', 700, 'Two Bedroom', '825.00', '1.18'),
+('D3', 800, 'Two Bed w/ Balcony', '1000.00', '1.25'),
+('D4', 400, 'Studio', '400.00', '1.00'),
+('A5', 400, 'Studio', '400.00', '1.00'),
+('E1', 400, 'Studio', '400.00', '1.00'),
+('E2', 550, 'One Bedroom', '600.00', '1.09'),
+('E3', 700, 'Two Bedroom', '800.00', '1.14'),
+('E4', 1000, 'Two Bed w/ Balcony', '1200.00', '1.20');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `secretary`
+--
+
+CREATE TABLE `secretary` (
+  `ID` int(11) NOT NULL,
+  `salary` decimal(10,2) DEFAULT NULL,
+  `office` varchar(5) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `secretary`
+--
+
+INSERT INTO `secretary` (`ID`, `salary`, `office`) VALUES
+(970, '45000.00', 'G1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `work_ticket`
+--
+
+CREATE TABLE `work_ticket` (
+  `ticket_number` int(11) NOT NULL,
+  `room_code` varchar(5) DEFAULT NULL,
+  `submit_date` int(11) DEFAULT NULL,
+  `description` varchar(100) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `work_ticket`
+--
+
+INSERT INTO `work_ticket` (`ticket_number`, `room_code`, `submit_date`, `description`) VALUES
+(50, 'A1', 112000, 'Food grinder broken'),
+(51, 'A1', 112000, 'Sink Leaks'),
+(52, 'A1', 112000, 'Dryer does not buzz'),
+(53, 'A1', 112000, 'Fridge does not shut'),
+(54, 'D4', 122000, 'Sagging Roof'),
+(55, 'A1', 122000, 'Bath tub does not drain'),
+(56, 'B3', 22002, 'Balcony about to collapse');
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `monthly_pay`
+--
+DROP TABLE IF EXISTS `monthly_pay`;
+-- in use(#1046 - No database selected)
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `contractor`
+--
+ALTER TABLE `contractor`
+  ADD PRIMARY KEY (`contract_ID`);
+
+--
+-- Indexes for table `contract_invoice`
+--
+ALTER TABLE `contract_invoice`
+  ADD PRIMARY KEY (`invoice_number`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `date_upkeep_performed`
+--
+ALTER TABLE `date_upkeep_performed`
+  ADD PRIMARY KEY (`ref_number`);
+
+--
+-- Indexes for table `employee`
+--
+ALTER TABLE `employee`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `general_upkeep`
+--
+ALTER TABLE `general_upkeep`
+  ADD PRIMARY KEY (`ref_number`);
+
+--
+-- Indexes for table `grounds_keeper`
+--
+ALTER TABLE `grounds_keeper`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `maint_heat_ac`
+--
+ALTER TABLE `maint_heat_ac`
+  ADD PRIMARY KEY (`company_ID`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `maint_parking`
+--
+ALTER TABLE `maint_parking`
+  ADD PRIMARY KEY (`company_ID`),
+  ADD KEY `contract_ID` (`contract_ID`);
+
+--
+-- Indexes for table `manager`
+--
+ALTER TABLE `manager`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `rent`
+--
+ALTER TABLE `rent`
+  ADD PRIMARY KEY (`receipt`,`room_code`),
+  ADD KEY `SSN` (`SSN`),
+  ADD KEY `room_code` (`room_code`);
+
+--
+-- Indexes for table `renter`
+--
+ALTER TABLE `renter`
+  ADD PRIMARY KEY (`SSN`),
+  ADD KEY `room_code` (`room_code`);
+
+--
+-- Indexes for table `room`
+--
+ALTER TABLE `room`
+  ADD PRIMARY KEY (`ROOM_CODE`);
+
+--
+-- Indexes for table `secretary`
+--
+ALTER TABLE `secretary`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `work_ticket`
+--
+ALTER TABLE `work_ticket`
+  ADD PRIMARY KEY (`ticket_number`),
+  ADD KEY `room_code` (`room_code`);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
