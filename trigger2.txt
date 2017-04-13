@@ -1,0 +1,21 @@
+Below is the trigger:
+
+DELIMITER $$
+
+CREATE TRIGGER add_contract
+AFTER INSERT ON maint_heat_ac
+FOR EACH ROW
+BEGIN
+INSERT INTO `contractor` (`contract_ID`, `company_name`, `address`, `phone`) VALUES
+(NEW.contract_ID, 'Temp Name', 'Temp Address', 000000);
+END $$
+
+Inserting the data into main_heat_ac produces an error for the contractor table since a contract_ID of 1 is already present, so it does not get added to contractor, but the data still gets added to maint_heat_ac
+
+INSERT INTO `maint_heat_ac` (`company_ID`, `contract_ID`, `heat_name`) VALUES
+(150, 1, 'New Guy');
+
+Inserting this data produces no errors, and adds an extra entry into contractor with some temp values as placeholders.
+
+INSERT INTO `maint_heat_ac` (`company_ID`, `contract_ID`, `heat_name`) VALUES
+(160, 3, 'Newer Guy');

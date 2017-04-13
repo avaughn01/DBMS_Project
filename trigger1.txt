@@ -1,0 +1,18 @@
+Below is the trigger:
+
+DELIMITER $$
+
+CREATE TRIGGER add_grounds
+AFTER INSERT ON grounds_keeper
+FOR EACH ROW
+BEGIN
+INSERT INTO `employee` (`ID`, `emp_name`, `pay`, `start_date`) VALUES
+(NEW.ID, 'Temp_Name', '12.50', 000000);
+END $$
+
+After the following query is executed it will insert data into both grounds keeper and employee.
+
+INSERT INTO `grounds_keeper` (`ID`, `hours_worked`) VALUES
+(444444, 25.00);
+
+
